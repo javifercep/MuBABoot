@@ -651,7 +651,7 @@ static uint8_t  *USBD_DFU_GetDeviceQualifierDesc (uint16_t *length)
 #if (USBD_SUPPORT_USER_STRING == 1)  
 static uint8_t* USBD_DFU_GetUsrStringDesc (USBD_HandleTypeDef *pdev, uint8_t index , uint16_t *length)
 {
-  static uint8_t USBD_StrDesc[255];
+  static __ALIGN_BEGIN uint8_t USBD_StrDesc[255] __ALIGN_END;
   /* Check if the requested string interface is supported */
   if (index <= (USBD_IDX_INTERFACE_STR + USBD_DFU_MAX_ITF_NUM))
   {

@@ -162,14 +162,14 @@ typedef struct
     uint8_t  d8[USBD_DFU_XFER_SIZE];
   }buffer;
   
-  uint8_t              dev_state; 
-  uint8_t              dev_status[DFU_STATUS_DEPTH];
-  uint8_t              manif_state;    
+  uint8_t   	dev_status[DFU_STATUS_DEPTH];
+  uint8_t       dev_state;
+  uint8_t      	manif_state;
   
-  uint32_t             wblock_num;
-  uint32_t             wlength;
-  uint32_t             data_ptr; 
-  __IO uint32_t        alt_setting;
+  uint32_t     	wblock_num;
+  uint32_t 	wlength;
+  uint32_t      data_ptr;
+  __IO uint32_t	alt_setting;
   
 }
 USBD_DFU_HandleTypeDef; 
