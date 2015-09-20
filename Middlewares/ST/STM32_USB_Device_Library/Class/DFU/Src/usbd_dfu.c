@@ -305,13 +305,13 @@ static uint8_t  USBD_DFU_Init (USBD_HandleTypeDef *pdev,
     hdfu->wlength = 0;
     
     hdfu->manif_state = DFU_MANIFEST_COMPLETE;
-    hdfu->dev_state = DFU_STATE_IDLE;
+    hdfu->dev_state = DFU_STATE_ERROR;
     
     hdfu->dev_status[0] = DFU_ERROR_NONE;
     hdfu->dev_status[1] = 0;
     hdfu->dev_status[2] = 0;   
     hdfu->dev_status[3] = 0;
-    hdfu->dev_status[4] = DFU_STATE_IDLE;    
+    hdfu->dev_status[4] = DFU_STATE_ERROR;
     hdfu->dev_status[5] = 0;    
     
     /* Initialize Hardware layer */

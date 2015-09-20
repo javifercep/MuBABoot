@@ -36,6 +36,7 @@
 /* Private typedef -----------------------------------------------------------*/
 /* Private define ------------------------------------------------------------*/
 #define FLASH_DESC_STR      "@Internal Flash   /0x08000000/03*016Ka,01*016Kg,01*064Kg,07*128Kg,04*016Kg,01*064Kg,07*128Kg"
+#define INIT_FLASH_ADD 	    0x08000000
 /* Private macro -------------------------------------------------------------*/
 /* Private variables ---------------------------------------------------------*/
 /* USB handler declaration */
@@ -79,10 +80,11 @@ __ALIGN_BEGIN USBD_DFU_MediaTypeDef USBD_DFU_fops_HS __ALIGN_END =
   */
 uint16_t MEM_If_Init_HS(void)
 { 
+  uint16_t ret = USBD_OK;
   /* USER CODE BEGIN 7 */ 
   /* Unlock the internal flash */
   HAL_FLASH_Unlock();
-  return (USBD_OK);
+  return ret;
   /* USER CODE END 7 */ 
 }
 
@@ -116,21 +118,25 @@ uint16_t MEM_If_Erase_HS(uint32_t Add)
 	{
 		/* This sector is reserved for DFU code */
 		//FLASH_Erase_Sector(FLASH_SECTOR_0, FLASH_VOLTAGE_RANGE_3);
+	    RetValue = USBD_FAIL;
 	}
 	else if (Add < 0x08008000)
 	{
 		/* This sector is reserved for DFU code */
 		//FLASH_Erase_Sector(FLASH_SECTOR_1, FLASH_VOLTAGE_RANGE_3);
+	    RetValue = USBD_FAIL;
 	}
 	else if (Add < 0x0800C000)
 	{
 		/* This sector is reserved for EEprom Emulation */
 		//FLASH_Erase_Sector(FLASH_SECTOR_2, FLASH_VOLTAGE_RANGE_3);
+	    RetValue = USBD_FAIL;
 	}
 	else if (Add < 0x08010000)
 	{
 		/* This sector is reserved for EEprom Emulation */
 		//FLASH_Erase_Sector(FLASH_SECTOR_3, FLASH_VOLTAGE_RANGE_3);
+	    RetValue = USBD_FAIL;
 	}
 	else if (Add < 0x08020000)
 	{
@@ -191,19 +197,20 @@ uint16_t MEM_If_Erase_HS(uint32_t Add)
 uint16_t MEM_If_Write_HS(uint8_t *src, uint8_t *dest, uint32_t Len)
 {
 	uint32_t idx = 0;
+	uint32_t Add = (uint32_t)dest;
 
 	if  (Len & 0x3) /* Not an aligned data */
 	{
 		for (idx = Len; idx < ((Len & 0xFFFC) + 4); idx++)
 		{
-			dest[idx] = 0xFF;
+		    src[idx] = 0xFF;
 		}
 	}
 
 	/* Data received are Word multiple */
 	for (idx = 0; idx <  Len; idx = idx + 4)
 	{
-		HAL_FLASH_Program(FLASH_PSIZE_WORD, Add, *(uint32_t *)(dest + idx));
+		HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, Add, *(uint32_t *)(src + idx));
 		Add += 4;
 	}
   /* USER CODE BEGIN 10 */ 
@@ -221,19 +228,17 @@ uint16_t MEM_If_Write_HS(uint8_t *src, uint8_t *dest, uint32_t Len)
   */
 uint8_t *MEM_If_Read_HS (uint8_t *src, uint8_t *dest, uint32_t Len)
 {
-  /* Return a valid address to avoid HardFault */
   /* USER CODE BEGIN 11 */ 
-#ifdef USB_OTG_HS_INTERNAL_DMA_ENABLED
+
   uint32_t idx = 0;
-  for (idx = 0; idx < Len; idx += 4)
-  {
-    *(uint32_t*)(MAL_Buffer + idx) = *(uint32_t *)(Add + idx);
-  }
-  return (uint8_t*)(MAL_Buffer);
-#else
-  return  (uint8_t *)(Add);
-#endif /* USB_OTG_HS_INTERNAL_DMA_ENABLED */
-  return (uint8_t*)(USBD_OK);
+  uint32_t Add = (uint32_t)src;
+
+   for (idx = 0; idx < Len; idx += 4)
+   {
+     *(uint32_t*)(dest + idx) = *(uint32_t *)(Add + idx);
+   }
+
+   return (uint8_t*)(dest);
   /* USER CODE END 11 */ 
 }
 
@@ -247,27 +252,22 @@ uint8_t *MEM_If_Read_HS (uint8_t *src, uint8_t *dest, uint32_t Len)
   */
 uint16_t MEM_If_GetStatus_HS (uint32_t Add, uint8_t Cmd, uint8_t *buffer)
 {
+  uint16_t ret = USBD_OK;
   /* USER CODE BEGIN 12 */ 
   switch (Cmd)
   {
   case DFU_MEDIA_PROGRAM:
-
-    break;
-    
   case DFU_MEDIA_ERASE:
+    if((Add > INIT_FLASH_ADD) && (Add < USBD_DFU_APP_DEFAULT_ADD))
+      {
+	  ret = USBD_FAIL;
+      }
+    break;
   default:
 
     break;
   }
-  if ((Add >= FLASH_START_ADD) && (Add < FLASH_END_ADD))
-  {
-    return MAL_OK;
-  }
-  else
-  {
-    return MAL_FAIL;
-  }
-  return  (USBD_OK);
+  return  ret;
   /* USER CODE END 12 */  
 }
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
