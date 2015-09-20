@@ -30,26 +30,25 @@
   *
   ******************************************************************************
   */
-
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 #include "usb_device.h"
+#include "gpio.h"
 #include "eeprom.h"
 
 /* USER CODE BEGIN Includes */
 
 /* USER CODE END Includes */
-/* Private defines -----------------------------------------------------------*/
-#define BOOT_ADDRESS 0x0000
+/* Private defined -----------------------------------------------------------*/
+#define KEY1_ADDRESS	0x0000
+#define KEY2_ADDRESS	0x0001
+#define KEY_CODE	0x504D554A
+
 /* Private variables ---------------------------------------------------------*/
-typedef  void (*pAppFunction)(void);
+typedef void (*pAppFunction)(void);
 
-pAppFunction Jump_To_Application;
-uint32_t JumpAddress;
-
-uint16_t VirtAddVarTab[NB_OF_VAR] = {0x5555, 0x6666, 0x7777};
-uint16_t VarDataTab[NB_OF_VAR] = {0, 0, 0};
-uint16_t VarValue = 0;
+pAppFunction AppLaunch;
+uint32_t AppAddress;
 
 /* USER CODE BEGIN PV */
 
@@ -68,9 +67,9 @@ void SystemClock_Config(void);
 
 int main(void)
 {
-
+  uint32_t AppKey = 0;
+  uint16_t *pAppKey = (uint16_t *)AppKey;
   /* USER CODE BEGIN 1 */
-  uint16_t IsBootActive;
   /* USER CODE END 1 */
 
   /* MCU Configuration----------------------------------------------------------*/
@@ -80,26 +79,28 @@ int main(void)
 
   /* Configure the system clock */
   SystemClock_Config();
-  /* Initializes EEPROM Emulation */
-  /* Unlock the Flash Program Erase controller */
+
+  /* Initializes the virtual EEPROM */
   HAL_FLASH_Unlock();
   EE_Init();
-  /* Initialize all configured peripherals */
-  MX_GPIO_Init();
 
-  if (EE_ReadVariable(BOOT_ADDRESS, &IsBootActive) == 0)
+  /* Read the key code */
+  EE_ReadVariable(KEY1_ADDRESS, pAppKey);
+  pAppKey++;
+  EE_ReadVariable(KEY2_ADDRESS, pAppKey);
+
+  /* If App Key is equal to "JUMP", launch the application */
+  if(AppKey == KEY_CODE)
   {
-	  if (IsBootActive == 0)
-	  {
-		  /* Jump to application */
-	      JumpAddress = *(__IO uint32_t*) (USBD_DFU_APP_DEFAULT_ADD + 4);
-	      Jump_To_Application = (pAppFunction) JumpAddress;
-	      /* Initialize user application's Stack Pointer */
-	      __set_MSP(*(__IO uint32_t*) USBD_DFU_APP_DEFAULT_ADD);
-	      Jump_To_Application();
-	  }
+      AppAddress = *(volatile uint32_t*)(USBD_DFU_APP_DEFAULT_ADD + 4);
+      AppLaunch = (pAppFunction)AppAddress;
+      /* Initialize user application's Stack Pointer */
+      __set_MSP(*(volatile uint32_t*)USBD_DFU_APP_DEFAULT_ADD);
+      AppLaunch();
   }
 
+  /* Initialize all configured peripherals */
+  MX_GPIO_Init();
   MX_USB_DEVICE_Init();
 
   /* USER CODE BEGIN 2 */

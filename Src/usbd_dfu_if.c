@@ -44,8 +44,6 @@
 /* Handle for USB High Speed IP */
 USBD_HandleTypeDef  *hUsbDevice_1;
 
-extern USBD_HandleTypeDef hUsbDeviceHS;  
-
 /* Private function prototypes -----------------------------------------------*/
 /* Extern function prototypes ------------------------------------------------*/
 /* Private functions ---------------------------------------------------------*/

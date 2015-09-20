@@ -28,7 +28,7 @@ Application/User/main.o: \
  ../..\..\Drivers\STM32F4xx_HAL_Driver\Inc/stm32f4xx_hal_pcd_ex.h \
  ../..\..\Inc/usb_device.h \
  ../..\..\Middlewares\ST\STM32_USB_Device_Library\Core\Inc/usbd_def.h \
- ../..\..\Inc/usbd_conf.h ../..\..\Inc/eeprom.h
+ ../..\..\Inc/usbd_conf.h ../..\..\Inc/gpio.h ../..\..\Inc/eeprom.h
 
 ../..\..\Drivers\STM32F4xx_HAL_Driver\Inc/stm32f4xx_hal.h:
 
@@ -87,5 +87,7 @@ Application/User/main.o: \
 ../..\..\Middlewares\ST\STM32_USB_Device_Library\Core\Inc/usbd_def.h:
 
 ../..\..\Inc/usbd_conf.h:
+
+../..\..\Inc/gpio.h:
 
 ../..\..\Inc/eeprom.h:
